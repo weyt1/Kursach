@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/mnt/d/kursach/mycode/my_cool_app -I/mnt/d/kursach/mycode/PRIVATE -I/mnt/d/kursach/mycode -isystem /usr/include/opencv4
+CXX_INCLUDES = -I/mnt/d/kursach/mycode -isystem /usr/include/opencv4
 
 CXX_FLAGS = 
 
