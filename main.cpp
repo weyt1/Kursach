@@ -6,7 +6,7 @@
 void readCameraParamsFromCommandLine(const cv::CommandLineParser& parser, cv::Mat& camMatrix, cv::Mat& distCoeffs) {
     camMatrix = (cv::Mat_<double>(3,3) << 1.35076413e+03, 0, 4.13808477e+02, 0, 1.71921253e+03, 1.98116410e+02, 0, 0, 1);
     distCoeffs = (cv::Mat_<double>(5,1) << 
-          0.2470824, 
+         0.2470824, 
          -0.27398596, 
          -0.02732488, 
          -0.02180864, 
