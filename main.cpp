@@ -4,8 +4,14 @@
 #include <vector>
 
 void readCameraParamsFromCommandLine(const cv::CommandLineParser& parser, cv::Mat& camMatrix, cv::Mat& distCoeffs) {
-    camMatrix = (cv::Mat_<double>(3,3) << 1000, 0, 320, 0, 1000, 240, 0, 0, 1);
-    distCoeffs = cv::Mat::zeros(5, 1, CV_64F);
+    camMatrix = (cv::Mat_<double>(3,3) << 4.80385776e+04, 0, 2.87901417e+02, 0, 4.80669486e+04, 4.22900346e+02, 0, 0, 1);
+    distCoeffs = (cv::Mat_<double>(5,1) << 
+        -7.29657997e+00, 
+         2.17855149e-02, 
+        -1.02508146e-04, 
+         4.13197321e-02, 
+         1.02544421e-05);
+
 }
 
 cv::Ptr<cv::aruco::Dictionary> readDictionaryFromCommandLine(const cv::CommandLineParser& parser) {
@@ -24,7 +30,7 @@ int main(int argc, char** argv) {
         "{s |0.01|Marker separation (in meters)}"
         "{r||Show rejected markers}"
         "{rs||Use refined strategy}"
-        "{ci|http://192.168.1.104:8080/video|Camera URL}"
+        "{ci|http://10.160.98.77:8080/video|Camera URL}"
         "{v||Input video file}"
         "{help||Help}");
 
@@ -63,27 +69,12 @@ int main(int argc, char** argv) {
         inputVideo.open(video);
         waitTime = 0;
     } else {
-        // Пробуем открыть видео источник в порядке приоритета:
-        // 1. URL с телефона (DroidCam/IP Webcam)
-        // 2. Устройство V4L2 (/dev/video0)
-        // 3. Стандартная камера (индекс 0)
+        inputVideo.open(cameraSource);
         
-        inputVideo.open(cameraSource);  // Пробуем URL телефона
-        
-        if (inputVideo.isOpened()) {
-            std::cerr << "Failed to open phone camera, trying fallback sources..." << std::endl;
-            inputVideo.open("/dev/video0", cv::CAP_V4L2);  // Пробуем V4L2 устройство
-            
-            if (!inputVideo.isOpened()) {
-                inputVideo.open(0);  // Пробуем стандартную камеру
-            }
+        if (!inputVideo.isOpened()) {
+            std::cerr << "Failed to open phone camera" << std::endl;
         }
         waitTime = 10;
-    }
-    
-    if (!inputVideo.isOpened()) {
-        std::cerr << "Failed to open all video sources!" << std::endl;
-        return 1;
     }
     
     cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(
