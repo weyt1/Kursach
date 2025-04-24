@@ -4,13 +4,13 @@
 #include <vector>
 
 void readCameraParamsFromCommandLine(const cv::CommandLineParser& parser, cv::Mat& camMatrix, cv::Mat& distCoeffs) {
-    camMatrix = (cv::Mat_<double>(3,3) << 4.80385776e+04, 0, 2.87901417e+02, 0, 4.80669486e+04, 4.22900346e+02, 0, 0, 1);
+    camMatrix = (cv::Mat_<double>(3,3) << 1.35076413e+03, 0, 4.13808477e+02, 0, 1.71921253e+03, 1.98116410e+02, 0, 0, 1);
     distCoeffs = (cv::Mat_<double>(5,1) << 
-        -7.29657997e+00, 
-         2.17855149e-02, 
-        -1.02508146e-04, 
-         4.13197321e-02, 
-         1.02544421e-05);
+          0.2470824, 
+         -0.27398596, 
+         -0.02732488, 
+         -0.02180864, 
+         -0.30900811);
 
 }
 
