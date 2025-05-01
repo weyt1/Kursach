@@ -1,7 +1,7 @@
 [
 {
   "directory": "/mnt/d/kursach/mycode/build",
-  "command": "/usr/bin/c++ -isystem /usr/include/opencv4 -o CMakeFiles/my_cool_app.dir/main.cpp.o -c /mnt/d/kursach/mycode/main.cpp",
+  "command": "/usr/bin/g++ -isystem /usr/include/opencv4 -g -o CMakeFiles/my_cool_app.dir/main.cpp.o -c /mnt/d/kursach/mycode/main.cpp",
   "file": "/mnt/d/kursach/mycode/main.cpp"
 }
 ]
