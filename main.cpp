@@ -11,7 +11,6 @@ void readCameraParamsFromCommandLine(const cv::CommandLineParser& parser, cv::Ma
          -0.02732488, 
          -0.02180864, 
          -0.30900811);
-
 }
 
 cv::Ptr<cv::aruco::Dictionary> readDictionaryFromCommandLine(const cv::CommandLineParser& parser) {
@@ -22,63 +21,90 @@ cv::Ptr<cv::aruco::DetectorParameters> readDetectorParamsFromCommandLine(const c
     return cv::aruco::DetectorParameters::create();
 }
 
+void createBoard(cv::Ptr<cv::aruco::DetectorParameters>& detectorParams, 
+    cv::Ptr<cv::aruco::Dictionary>& dictionary,
+    const cv::CommandLineParser& parser,
+    const cv::Mat& image,
+    const cv::Mat& camMatrix,
+    const cv::Mat& distCoeffs) 
+{
+std::vector<int> ids;
+std::vector<std::vector<cv::Point2f>> corners, rejected;
+cv::aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
+
+cv::Mat imageCopy = image.clone();
+if (!ids.empty()) {
+cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
+
+int markersX = parser.get<int>("w");
+int markersY = parser.get<int>("h");
+float markerLength = parser.get<float>("l");
+float markerSeparation = parser.get<float>("s");
+
+cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(
+markersX, markersY, markerLength, markerSeparation, dictionary);
+
+cv::Vec3d rvec, tvec;
+int markersDetected = cv::aruco::estimatePoseBoard(corners, ids, board, camMatrix, distCoeffs, rvec, tvec);
+
+if (markersDetected > 0) {
+cv::drawFrameAxes(imageCopy, camMatrix, distCoeffs, rvec, tvec, 0.1);
+}
+}
+
+cv::imwrite("Detected_Markers.jpg", imageCopy);
+cv::imshow("Detected Markers", imageCopy);
+cv::waitKey(0);
+}
+
 int main(int argc, char** argv) {
     cv::CommandLineParser parser(argc, argv,
         "{w |5|Number of markers in X direction}"
         "{h |7|Number of markers in Y direction}"
-        "{l |0.03|Marker length (in meters)}"
-        "{s |0.01|Marker separation (in meters)}"
+        "{l |0.033|Marker length (in meters)}"
+        "{s |0.004|Marker separation (in meters)}"
         "{r||Show rejected markers}"
-        "{rs||Use refined strategy}"
-        "{ci|http://10.160.98.77:8080/video|Camera URL}"
-        "{v||Input video file}"
+        "{ci|http://192.168.1.101:8080/video|Camera URL}"
+        "{i||Input image file}"
         "{help||Help}");
-
-    if (parser.has("help")) {
-        parser.printMessage();
-        return 0;
-    }
 
     int markersX = parser.get<int>("w");
     int markersY = parser.get<int>("h");
     float markerLength = parser.get<float>("l");
     float markerSeparation = parser.get<float>("s");
     bool showRejected = parser.has("r");
-    bool refindStrategy = parser.has("rs");
     std::string cameraSource = parser.get<std::string>("ci");
 
     cv::Mat camMatrix, distCoeffs;
     readCameraParamsFromCommandLine(parser, camMatrix, distCoeffs);
-    auto dictionary = readDictionaryFromCommandLine(parser);
-    auto detectorParams = readDetectorParamsFromCommandLine(parser);
+    cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+    cv::Ptr<cv::aruco::DetectorParameters> detectorParams = readDetectorParamsFromCommandLine(parser);
 
-    cv::String video;
-    if (parser.has("v")) {
-        video = parser.get<cv::String>("v");
+    std::string imagePath;
+    cv::Mat image;
+    if (parser.has("i")) {  
+        imagePath = parser.get<std::string>("i");
+        image = cv::imread(imagePath);
+        if (image.empty()) {
+            std::cerr << "Could not read the image: " << imagePath << std::endl;
+            return 1;
+        }
+        createBoard(detectorParams, dictionary, parser, image, camMatrix, distCoeffs);
+        return 0;
     }
-
+    int waitTime;
     if (!parser.check()) {
         parser.printErrors();
         return 1;
     }
-
-    cv::VideoCapture inputVideo;
-    int waitTime;
-    
-    if (!video.empty()) {
-        inputVideo.open(video);
-        waitTime = 0;
-    } else {
+        cv::VideoCapture inputVideo;
         inputVideo.open(cameraSource);
-        
         if (!inputVideo.isOpened()) {
             std::cerr << "Failed to open phone camera" << std::endl;
         }
         waitTime = 10;
-    }
     
-    cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(
-        markersX, markersY, markerLength, markerSeparation, dictionary);
+    cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(markersX, markersY, markerLength, markerSeparation, dictionary);
         
     double totalTime = 0;
     int totalIterations = 0;
@@ -91,15 +117,13 @@ int main(int argc, char** argv) {
         
         std::vector<int> ids;
         std::vector<std::vector<cv::Point2f>> corners, rejected;
-        cv::Vec3d rvec, tvec;
         
         cv::aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
-        
-        if (refindStrategy) {
-            cv::aruco::refineDetectedMarkers(image, board, corners, ids, rejected, camMatrix, distCoeffs);
-        }
-
+    
         int markersOfBoardDetected = 0;
+        
+        cv::Vec3d rvec, tvec;
+        
         if (!ids.empty()) {
             markersOfBoardDetected = cv::aruco::estimatePoseBoard(
                 corners, ids, board, camMatrix, distCoeffs, rvec, tvec);
@@ -119,12 +143,8 @@ int main(int argc, char** argv) {
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
         }
 
-        if (showRejected && !rejected.empty()) {
-            cv::aruco::drawDetectedMarkers(imageCopy, rejected, cv::noArray(), cv::Scalar(100, 0, 255));
-        }
-
         if (markersOfBoardDetected > 0) {
-            cv::drawFrameAxes(imageCopy, camMatrix, distCoeffs, rvec, tvec, 3);
+            cv::drawFrameAxes(imageCopy, camMatrix, distCoeffs, rvec, tvec, 0.1);
         }
 
         cv::imshow("out", imageCopy);
