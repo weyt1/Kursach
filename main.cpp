@@ -21,8 +21,6 @@ cv::Ptr<cv::aruco::DetectorParameters> readDetectorParamsFromCommandLine(const c
     return cv::aruco::DetectorParameters::create();
 }
 
-
-
 int main(int argc, char** argv) {
     cv::CommandLineParser parser(argc, argv,
         "{w |5|Number of markers in X direction}"
@@ -30,7 +28,7 @@ int main(int argc, char** argv) {
         "{l |0.033|Marker length (in meters)}"
         "{s |0.004|Marker separation (in meters)}"
         "{r||Show rejected markers}"
-        "{ci|http://192.168.1.101:8080/video|Camera URL}"
+        "{ci|http://192.168.1.102:8080/video|Camera URL}"
         "{i||Input image file}"
         "{help||Help}");
 
@@ -106,7 +104,10 @@ int main(int argc, char** argv) {
         std::vector<int> ids;
         std::vector<std::vector<cv::Point2f>> corners, rejected;
         
-        cv::aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
+        cv::aruco::detectMarkers(   image, dictionary, corners, ids, detectorParams, rejected);
+        if (ids.size()) {
+            cv::aruco::refineDetectedMarkers(image, board, corners, ids, rejected, camMatrix, distCoeffs);
+        }
     
         int markersOfBoardDetected = 0;
         
