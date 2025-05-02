@@ -21,41 +21,7 @@ cv::Ptr<cv::aruco::DetectorParameters> readDetectorParamsFromCommandLine(const c
     return cv::aruco::DetectorParameters::create();
 }
 
-void createBoard(cv::Ptr<cv::aruco::DetectorParameters>& detectorParams, 
-    cv::Ptr<cv::aruco::Dictionary>& dictionary,
-    const cv::CommandLineParser& parser,
-    const cv::Mat& image,
-    const cv::Mat& camMatrix,
-    const cv::Mat& distCoeffs) 
-{
-std::vector<int> ids;
-std::vector<std::vector<cv::Point2f>> corners, rejected;
-cv::aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
 
-cv::Mat imageCopy = image.clone();
-if (!ids.empty()) {
-cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
-
-int markersX = parser.get<int>("w");
-int markersY = parser.get<int>("h");
-float markerLength = parser.get<float>("l");
-float markerSeparation = parser.get<float>("s");
-
-cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(
-markersX, markersY, markerLength, markerSeparation, dictionary);
-
-cv::Vec3d rvec, tvec;
-int markersDetected = cv::aruco::estimatePoseBoard(corners, ids, board, camMatrix, distCoeffs, rvec, tvec);
-
-if (markersDetected > 0) {
-cv::drawFrameAxes(imageCopy, camMatrix, distCoeffs, rvec, tvec, 0.1);
-}
-}
-
-cv::imwrite("Detected_Markers.jpg", imageCopy);
-cv::imshow("Detected Markers", imageCopy);
-cv::waitKey(0);
-}
 
 int main(int argc, char** argv) {
     cv::CommandLineParser parser(argc, argv,
@@ -89,7 +55,28 @@ int main(int argc, char** argv) {
             std::cerr << "Could not read the image: " << imagePath << std::endl;
             return 1;
         }
-        createBoard(detectorParams, dictionary, parser, image, camMatrix, distCoeffs);
+        std::vector<int> ids;
+        std::vector<std::vector<cv::Point2f>> corners, rejected;
+        cv::aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
+
+        cv::Mat imageCopy = image.clone();
+        if (!ids.empty()) {
+        cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
+
+        cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(
+        markersX, markersY, markerLength, markerSeparation, dictionary);
+
+        cv::Vec3d rvec, tvec;
+        int markersDetected = cv::aruco::estimatePoseBoard(corners, ids, board, camMatrix, distCoeffs, rvec, tvec);
+
+        if (markersDetected > 0) {
+        cv::drawFrameAxes(imageCopy, camMatrix, distCoeffs, rvec, tvec, 0.1);
+        }
+        }
+
+        cv::imwrite("Detected_Markers.jpg", imageCopy);
+        cv::imshow("Detected Markers", imageCopy);
+        cv::waitKey(0);
         return 0;
     }
     int waitTime;
@@ -104,7 +91,8 @@ int main(int argc, char** argv) {
         }
         waitTime = 10;
     
-    cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(markersX, markersY, markerLength, markerSeparation, dictionary);
+    cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(
+        markersX, markersY, markerLength, markerSeparation, dictionary);
         
     double totalTime = 0;
     int totalIterations = 0;
