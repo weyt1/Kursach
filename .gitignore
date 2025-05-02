@@ -2,5 +2,5 @@
 compile_commands.json
 /CMakeFiles/
 /*.txt
-MakeFile
+Makefile
 cmake_install.cmake
