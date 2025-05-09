@@ -4,6 +4,7 @@ build/
 CMakeFiles/
 CMakeCache.txt
 Makefile
-
+CMakeLists.txt
+calibrate/
+build/
 *.png
-*.jpg
