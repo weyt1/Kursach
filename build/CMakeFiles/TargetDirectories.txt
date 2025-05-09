@@ -1,3 +1,0 @@
-/mnt/d/kursach/mycode/build/CMakeFiles/my_cool_app.dir
-/mnt/d/kursach/mycode/build/CMakeFiles/edit_cache.dir
-/mnt/d/kursach/mycode/build/CMakeFiles/rebuild_cache.dir
